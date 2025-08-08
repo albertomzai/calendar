@@ -1,0 +1,103 @@
+{
+  "api_contract": {
+    "ruta": "/api/events",
+    "metodo_GET": {
+      "descripcion": "Obtiene todos los eventos dentro de un rango de fechas.",
+      "parametros_entrada": {
+        "start": "string (ISO 8601 datetime)",
+        "end": "string (ISO 8601 datetime)"
+      },
+      "respuesta_esperada": {
+        "events": [
+          {
+            "id": "integer",
+            "titulo": "string",
+            "descripcion": "string",
+            "fecha_inicio": "string (ISO 8601 datetime)",
+            "fecha_fin": "string (ISO 8601 datetime)",
+            "color": "string"
+          }
+        ]
+      }
+    },
+    "metodo_POST": {
+      "descripcion": "Crea un nuevo evento.",
+      "parametros_entrada": {
+        "titulo": "string",
+        "descripcion": "string",
+        "fecha_inicio": "string (ISO 8601 datetime)",
+        "fecha_fin": "string (ISO 8601 datetime)",
+        "color": "string"
+      },
+      "respuesta_esperada": {
+        "id": "integer",
+        "titulo": "string",
+        "descripcion": "string",
+        "fecha_inicio": "string (ISO 8601 datetime)",
+        "fecha_fin": "string (ISO 8601 datetime)",
+        "color": "string"
+      }
+    },
+    "metodo_PUT": {
+      "ruta_id": "/api/events/<id>",
+      "descripcion": "Actualiza los campos de un evento existente.",
+      "parametros_entrada": {
+        "titulo": "string",
+        "descripcion": "string",
+        "fecha_inicio": "string (ISO 8601 datetime)",
+        "fecha_fin": "string (ISO 8601 datetime)",
+        "color": "string"
+      },
+      "respuesta_esperada": {
+        "id": "integer",
+        "titulo": "string",
+        "descripcion": "string",
+        "fecha_inicio": "string (ISO 8601 datetime)",
+        "fecha_fin": "string (ISO 8601 datetime)",
+        "color": "string"
+      }
+    },
+    "metodo_DELETE": {
+      "ruta_id": "/api/events/<id>",
+      "descripcion": "Elimina un evento por su ID.",
+      "respuesta_esperada": {
+        "message": "string"
+      }
+    }
+  },
+  "plan": [
+    {
+      "etapa": "backend",
+      "tareas": [
+        "Inicializar un proyecto Flask con la estructura de directorios base (app, models, routes).",
+        "Configurar Flask-SQLAlchemy para usar SQLite y crear el archivo 'calendario.db'.",
+        "Definir el modelo SQLAlchemy 'Evento' con los campos id, titulo, descripcion, fecha_inicio, fecha_fin y color.",
+        "Crear la migración inicial (o script de creación) para generar la tabla eventos en la base de datos.",
+        "Implementar un Blueprint '/api/events' que exponga los endpoints GET, POST, PUT y DELETE según el contrato API.",
+        "En el endpoint GET, parsear los parámetros 'start' y 'end', filtrar eventos por rango y devolver la lista serializada.",
+        "En el endpoint POST, validar los campos obligatorios (titulo, fecha_inicio, fecha_fin), crear un nuevo Evento y persistirlo en la BD.",
+        "En el endpoint PUT, buscar el Evento por ID, actualizar solo los campos enviados y guardar los cambios.",
+        "En el endpoint DELETE, eliminar el Evento identificado por ID y devolver una confirmación.",
+        "Añadir manejo de excepciones globales para errores 404, 400 y 500 con respuestas JSON adecuadas.",
+        "Configurar CORS en Flask para permitir solicitudes desde la misma URL del frontend (index.html).",
+        "Escribir pruebas unitarias básicas para cada endpoint usando pytest y el cliente test de Flask."
+      ]
+    },
+    {
+      "etapa": "frontend",
+      "tareas": [
+        "Crear un archivo 'index.html' con estructura básica: DOCTYPE, head con título, meta charset UTF-8, y body vacío.",
+        "Incluir dentro del head los enlaces a la librería de calendario JS (por ejemplo FullCalendar) y su CSS.",
+        "Añadir en el body un contenedor <div id='calendar'></div> para renderizar el calendario mensual.",
+        "Escribir un bloque <script> inline que inicialice FullCalendar con configuración de vista 'dayGridMonth' y habilite la función selectable.",
+        "Implementar una función JavaScript para hacer fetch al endpoint GET '/api/events' con parámetros start y end del mes actual, parsear la respuesta JSON e insertar eventos en el calendario.",
+        "Agregar un manejador de evento 'dateClick' que abra un modal o formulario inline para crear un nuevo evento (captura título, descripción, color).",
+        "En el formulario de creación, enviar datos vía fetch POST a '/api/events', y al éxito actualizar el calendario sin recargar la página.",
+        "Permitir clic en eventos del calendario para abrir una vista de detalle con información completa y botón 'Eliminar'; enviar fetch DELETE a '/api/events/<id>' y remover el evento del calendario tras confirmación.",
+        "Habilitar drag‑and‑drop (eventDrop) en FullCalendar; al cambiar la fecha, enviar fetch PUT a '/api/events/<id>' con nuevas fechas de inicio y fin, y actualizar visualmente el evento.",
+        "Incluir manejo básico de errores HTTP en cada llamada fetch para mostrar mensajes de alerta al usuario.",
+        "Agregar estilos CSS mínimos para asegurar una presentación limpia del calendario y los modales sin requerir archivos externos adicionales."
+      ]
+    }
+  ]
+}
