@@ -1,14 +1,36 @@
 {
   "api_contract": {
     "ruta": "/api/events",
-    "metodo_GET": {
-      "descripcion": "Obtiene todos los eventos dentro de un rango de fechas.",
-      "parametros_entrada": {
-        "start": "string (ISO 8601 datetime)",
-        "end": "string (ISO 8601 datetime)"
+    "metodos": [
+      {
+        "metodo": "GET",
+        "descripcion": "Obtiene todos los eventos filtrados por rango de fechas.",
+        "parametros_entrada": {
+          "start": "string (ISO 8601 datetime)",
+          "end": "string (ISO 8601 datetime)"
+        },
+        "respuesta_esperada": [
+          {
+            "id": "integer",
+            "titulo": "string",
+            "descripcion": "string",
+            "fecha_inicio": "string (ISO 8601 datetime)",
+            "fecha_fin": "string (ISO 8601 datetime)",
+            "color": "string"
+          }
+        ]
       },
-      "respuesta_esperada": [
-        {
+      {
+        "metodo": "POST",
+        "descripcion": "Crea un nuevo evento.",
+        "parametros_entrada": {
+          "titulo": "string",
+          "descripcion": "string",
+          "fecha_inicio": "string (ISO 8601 datetime)",
+          "fecha_fin": "string (ISO 8601 datetime)",
+          "color": "string"
+        },
+        "respuesta_esperada": {
           "id": "integer",
           "titulo": "string",
           "descripcion": "string",
@@ -16,84 +38,70 @@
           "fecha_fin": "string (ISO 8601 datetime)",
           "color": "string"
         }
-      ]
-    },
-    "metodo_POST": {
-      "descripcion": "Crea un nuevo evento.",
-      "parametros_entrada": {
-        "titulo": "string",
-        "descripcion": "string",
-        "fecha_inicio": "string (ISO 8601 datetime)",
-        "fecha_fin": "string (ISO 8601 datetime)",
-        "color": "string"
       },
-      "respuesta_esperada": {
-        "id": "integer",
-        "titulo": "string",
-        "descripcion": "string",
-        "fecha_inicio": "string (ISO 8601 datetime)",
-        "fecha_fin": "string (ISO 8601 datetime)",
-        "color": "string"
-      }
-    },
-    "metodo_PUT": {
-      "ruta_id": "/api/events/<id>",
-      "descripcion": "Actualiza un evento existente.",
-      "parametros_entrada": {
-        "titulo": "string",
-        "descripcion": "string",
-        "fecha_inicio": "string (ISO 8601 datetime)",
-        "fecha_fin": "string (ISO 8601 datetime)",
-        "color": "string"
+      {
+        "metodo": "PUT",
+        "ruta_adicional": "/<id>",
+        "descripcion": "Actualiza los campos de un evento existente.",
+        "parametros_entrada": {
+          "titulo": "string",
+          "descripcion": "string",
+          "fecha_inicio": "string (ISO 8601 datetime)",
+          "fecha_fin": "string (ISO 8601 datetime)",
+          "color": "string"
+        },
+        "respuesta_esperada": {
+          "id": "integer",
+          "titulo": "string",
+          "descripcion": "string",
+          "fecha_inicio": "string (ISO 8601 datetime)",
+          "fecha_fin": "string (ISO 8601 datetime)",
+          "color": "string"
+        }
       },
-      "respuesta_esperada": {
-        "id": "integer",
-        "titulo": "string",
-        "descripcion": "string",
-        "fecha_inicio": "string (ISO 8601 datetime)",
-        "fecha_fin": "string (ISO 8601 datetime)",
-        "color": "string"
+      {
+        "metodo": "DELETE",
+        "ruta_adicional": "/<id>",
+        "descripcion": "Elimina un evento por su identificador.",
+        "respuesta_esperada": {
+          "message": "string"
+        }
       }
-    },
-    "metodo_DELETE": {
-      "ruta_id": "/api/events/<id>",
-      "descripcion": "Elimina un evento.",
-      "respuesta_esperada": {
-        "message": "string",
-        "deleted_id": "integer"
-      }
-    }
+    ]
   },
   "plan": [
     {
       "etapa": "backend",
       "tareas": [
-        "Crear la estructura de directorios del proyecto Flask con subdirectorios 'app', 'models' y 'routes'.",
-        "Configurar el archivo 'config.py' para usar SQLite con nombre 'calendario.db' y habilitar SQLAlchemy.",
-        "Definir la clase modelo 'Evento' en 'models/evento.py' con atributos id, titulo, descripcion, fecha_inicio, fecha_fin y color, usando Flask-SQLAlchemy.",
-        "Inicializar el objeto SQLAlchemy en 'app/__init__.py' y crear las tablas mediante un script de migración simple.",
-        "Implementar la ruta GET '/api/events' en 'routes/eventos.py', aceptando parámetros 'start' y 'end', filtrando eventos por rango y devolviendo JSON con lista de objetos evento según el contrato.",
-        "Crear la ruta POST '/api/events' que reciba un cuerpo JSON, valide los campos requeridos, cree una instancia Evento, guarde en la base y devuelva el objeto creado como JSON.",
-        "Desarrollar la ruta PUT '/api/events/<id>' para actualizar los atributos de un evento existente; validar existencia, aplicar cambios y retornar el objeto actualizado.",
-        "Implementar la ruta DELETE '/api/events/<id>' que elimine el registro correspondiente y retorne un mensaje de éxito con el id eliminado.",
-        "Configurar CORS en Flask para permitir peticiones desde el frontend alojado localmente.",
-        "Agregar manejo de errores global (400, 404, 500) con respuestas JSON estructuradas según el contrato.",
-        "Escribir pruebas unitarias básicas usando pytest para cada endpoint y validar los códigos de estado y la estructura de respuesta."
+        "Crear la estructura de directorios del proyecto Flask con carpetas para app, models y routes.",
+        "Instalar y configurar Flask-SQLAlchemy para usar SQLite como 'calendario.db'.",
+        "Definir el modelo SQLAlchemy 'Evento' con los campos id, titulo, descripcion, fecha_inicio, fecha_fin y color.",
+        "Crear un archivo de configuración que establezca la URI de la base de datos y habilite la creación automática de tablas al iniciar la aplicación.",
+        "Implementar la lógica de inicialización del servidor Flask y registrar las rutas en un Blueprint dedicado a '/api/events'.",
+        "Desarrollar el endpoint GET '/api/events' que reciba los parámetros 'start' y 'end', valide su formato ISO 8601, realice la consulta filtrada y devuelva la lista de eventos como JSON.",
+        "Crear el endpoint POST '/api/events' que reciba un cuerpo JSON con los campos necesarios, valide la presencia de título, fechas y la coherencia de fecha_inicio < fecha_fin, cree una instancia del modelo Evento, guarde en la base y retorne el objeto creado.",
+        "Implementar el endpoint PUT '/api/events/<id>' que busque el evento por id, actualice los atributos provistos en el cuerpo JSON (si existen), valide las fechas y guarde los cambios.",
+        "Desarrollar el endpoint DELETE '/api/events/<id>' que elimine el registro correspondiente y retorne un mensaje de éxito.",
+        "Añadir manejo global de errores para respuestas 400 (validación) y 404 (no encontrado).",
+        "Configurar CORS para permitir peticiones desde la misma URL del frontend.",
+        "Escribir pruebas unitarias con pytest que cubran los cuatro endpoints bajo diferentes escenarios de entrada.",
+        "Preparar un script de migración ligera o usar Flask-Migrate para gestionar cambios futuros en el esquema."
       ]
     },
     {
       "etapa": "frontend",
       "tareas": [
-        "Crear el archivo 'index.html' con una etiqueta <div id='calendar'></div> como contenedor del calendario.",
-        "Incluir en 'index.html' los enlaces a la librería de calendario JavaScript seleccionada (por ejemplo, FullCalendar) y su hoja de estilos CSS.",
-        "Escribir un bloque <script> inline que inicialice el calendario mensual al cargar la página, configurando la vista por mes y habilitando eventos dinámicos.",
-        "Implementar una función JavaScript que realice una llamada fetch GET a '/api/events' con parámetros 'start' y 'end' correspondientes al primer y último día del mes actual; procesar la respuesta y renderizar los eventos en el calendario.",
-        "Agregar un controlador de clic en las celdas del calendario para abrir un modal o formulario inline que permita ingresar título, descripción, fecha_inicio, fecha_fin y color, enviando una petición POST a '/api/events' al confirmar.",
-        "Configurar cada evento renderizado para ser clickable; al hacer clic mostrar sus detalles y ofrecer un botón de eliminación que envíe DELETE a '/api/events/<id>'.",
-        "Implementar la funcionalidad drag-and-drop del calendario: cuando un usuario arrastre un evento a otro día, capturar el nuevo rango de fechas y enviar una petición PUT a '/api/events/<id>' con las nuevas fechas.",
-        "Añadir manejo básico de errores en todas las peticiones fetch, mostrando mensajes de alerta al usuario si la API falla.",
-        "Optimizar la carga del calendario para que solo recupere eventos dentro del mes visible usando los parámetros 'start' y 'end'.",
-        "Incluir estilos CSS mínimos dentro de <style> para asegurar una presentación clara del calendario y sus eventos sin depender de archivos externos."
+        "Crear el archivo 'index.html' con una estructura básica: encabezado, contenedor principal y sección modal.",
+        "Incluir enlaces a los recursos de la librería de calendario JavaScript elegida (por ejemplo FullCalendar) mediante CDN.",
+        "Escribir CSS interno para estilos básicos del calendario, eventos y modal, asegurando responsividad mínima.",
+        "Agregar un script inline que inicialice el calendario con la vista mensual, configurado para cargar eventos desde '/api/events' usando fetch con parámetros de fecha de inicio y fin correspondientes al mes actual.",
+        "Implementar un listener en los días del calendario que abra un formulario dentro del modal para crear un nuevo evento, prellenando la fecha de inicio y fin según el día seleccionado.",
+        "Añadir lógica JavaScript para enviar una petición POST a '/api/events' con los datos del formulario, refrescar el calendario al éxito y cerrar el modal.",
+        "Configurar cada evento renderizado en el calendario como clickeable; al hacer click, abrir un modal que muestre título, descripción, fechas y un botón de eliminar.",
+        "Implementar la llamada DELETE a '/api/events/<id>' cuando el usuario confirme la eliminación, actualizar el calendario sin recargar la página.",
+        "Agregar funcionalidad drag‑and‑drop usando las opciones de la librería de calendario; al soltar un evento en otro día, capturar la nueva fecha y enviar una petición PUT a '/api/events/<id>' con fechas actualizadas.",
+        "Incluir manejo básico de errores en todas las llamadas fetch para mostrar mensajes de alerta al usuario cuando la API devuelva un error.",
+        "Optimizar el script para evitar múltiples instancias del calendario y asegurar que los datos se refresquen únicamente cuando haya cambios."
       ]
     }
   ]
