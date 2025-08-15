@@ -1,24 +1,10 @@
-from flask import Flask
+# backend/__init__.py
 
-# Importamos las configuraciones de la base de datos
-from .config import Config
-
-# Creamos la instancia de Flask con la carpeta estática adecuada
-app = Flask(__name__, static_folder='../frontend', static_url_path='')
-
-# Cargamos la configuración desde el objeto Config
-app.config.from_object(Config)
-
-# Inicializamos SQLAlchemy y creamos los modelos
+# Expose the Flask app and SQLAlchemy db as top-level imports.
+from .app import app  # Importa la instancia de Flask creada en app.py
+from .models import Evento  # Importa el modelo para que esté disponible
 from flask_sqlalchemy import SQLAlchemy
 
-db = SQLAlchemy(app)
-
-# Registramos los Blueprints
-from .routes import events_bp
-app.register_blueprint(events_bp, url_prefix='/api')
-
-# Ruta raíz para servir el index.html del frontend
-@app.route('/')
-def serve_index():
-    return app.send_static_file('index.html')
+# Reexport db from backend/app.py to keep API stable
+from .app import db
+__all__ = ['app', 'db', 'Evento']

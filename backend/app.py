@@ -1,11 +1,18 @@
-# Script de arranque del servidor Flask
+# backend/app.py
 
-from . import app, db
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from .config import Config
 
-if __name__ == '__main__':
-    # Creamos la base de datos si no existe
-    with app.app_context():
-        db.create_all()
+app = Flask(__name__, static_folder='../frontend', static_url_path='')
+app.config.from_object(Config)
 
-    # Iniciamos el servidor
-    app.run(host='0.0.0.0', port=5000, debug=True)
+db = SQLAlchemy(app)
+
+# Registrar blueprint después de que db esté definido
+from .routes import events_bp
+app.register_blueprint(events_bp, url_prefix='/api')
+
+@app.route('/')
+def serve_index():
+    return app.send_static_file('index.html')
