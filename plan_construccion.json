@@ -1,14 +1,38 @@
 {
-  "api_contract": {
-    "ruta": "/api/events",
-    "metodo": "GET",
-    "descripcion": "Obtiene la lista de eventos dentro de un rango de fechas.",
-    "parametros_entrada": {
-      "start": "string (ISO 8601 datetime)",
-      "end": "string (ISO 8601 datetime)"
+  "api_contract": [
+    {
+      "ruta": "/api/events",
+      "metodo": "GET",
+      "descripcion": "Obtiene una lista de eventos dentro del rango de fechas especificado.",
+      "parametros_entrada": {
+        "start": "string (ISO 8601 datetime)",
+        "end": "string (ISO 8601 datetime)"
+      },
+      "respuesta_esperada": {
+        "events": [
+          {
+            "id": "integer",
+            "titulo": "string",
+            "descripcion": "string",
+            "fecha_inicio": "string (ISO 8601 datetime)",
+            "fecha_fin": "string (ISO 8601 datetime)",
+            "color": "string"
+          }
+        ]
+      }
     },
-    "respuesta_esperada": [
-      {
+    {
+      "ruta": "/api/events",
+      "metodo": "POST",
+      "descripcion": "Crea un nuevo evento.",
+      "parametros_entrada": {
+        "titulo": "string",
+        "descripcion": "string",
+        "fecha_inicio": "string (ISO 8601 datetime)",
+        "fecha_fin": "string (ISO 8601 datetime)",
+        "color": "string"
+      },
+      "respuesta_esperada": {
         "id": "integer",
         "titulo": "string",
         "descripcion": "string",
@@ -16,103 +40,83 @@
         "fecha_fin": "string (ISO 8601 datetime)",
         "color": "string"
       }
-    ]
-  },
-  "api_contract_post": {
-    "ruta": "/api/events",
-    "metodo": "POST",
-    "descripcion": "Crea un nuevo evento.",
-    "parametros_entrada": {
-      "titulo": "string",
-      "descripcion": "string",
-      "fecha_inicio": "string (ISO 8601 datetime)",
-      "fecha_fin": "string (ISO 8601 datetime)",
-      "color": "string"
     },
-    "respuesta_esperada": {
-      "id": "integer",
-      "titulo": "string",
-      "descripcion": "string",
-      "fecha_inicio": "string (ISO 8601 datetime)",
-      "fecha_fin": "string (ISO 8601 datetime)",
-      "color": "string"
-    }
-  },
-  "api_contract_put": {
-    "ruta": "/api/events/<id>",
-    "metodo": "PUT",
-    "descripcion": "Actualiza los campos de un evento existente.",
-    "parametros_entrada": {
-      "titulo": "string",
-      "descripcion": "string",
-      "fecha_inicio": "string (ISO 8601 datetime)",
-      "fecha_fin": "string (ISO 8601 datetime)",
-      "color": "string"
+    {
+      "ruta": "/api/events/<id>",
+      "metodo": "PUT",
+      "descripcion": "Actualiza los campos de un evento existente.",
+      "parametros_entrada": {
+        "titulo": "string",
+        "descripcion": "string",
+        "fecha_inicio": "string (ISO 8601 datetime)",
+        "fecha_fin": "string (ISO 8601 datetime)",
+        "color": "string"
+      },
+      "respuesta_esperada": {
+        "id": "integer",
+        "titulo": "string",
+        "descripcion": "string",
+        "fecha_inicio": "string (ISO 8601 datetime)",
+        "fecha_fin": "string (ISO 8601 datetime)",
+        "color": "string"
+      }
     },
-    "respuesta_esperada": {
-      "id": "integer",
-      "titulo": "string",
-      "descripcion": "string",
-      "fecha_inicio": "string (ISO 8601 datetime)",
-      "fecha_fin": "string (ISO 8601 datetime)",
-      "color": "string"
+    {
+      "ruta": "/api/events/<id>",
+      "metodo": "DELETE",
+      "descripcion": "Elimina un evento por su identificador.",
+      "parametros_entrada": {},
+      "respuesta_esperada": {
+        "message": "string"
+      }
     }
-  },
-  "api_contract_delete": {
-    "ruta": "/api/events/<id>",
-    "metodo": "DELETE",
-    "descripcion": "Elimina un evento existente.",
-    "parametros_entrada": {},
-    "respuesta_esperada": {
-      "message": "string"
-    }
-  },
+  ],
   "contrato_qa_e2e": {
-    "calendar_grid_cell": "cell-{{date}}",
-    "event_item": "event-{{id}}",
+    "calendar_container": "calendar-container",
+    "event_modal": "event-modal",
     "create_event_button": "btn-create-event",
-    "edit_event_modal": "modal-edit-event",
-    "delete_event_button": "btn-delete-event"
+    "delete_event_button": "btn-delete-event",
+    "drag_handle": "draggable-handle"
   },
   "plan": [
     {
       "etapa": "backend",
       "tareas": [
-        "Crear un directorio 'backend' con archivo '__init__.py' que exponga la factory 'create_app'.",
-        "Definir la configuración de Flask para usar SQLite ('calendario.db') y habilitar SQLAlchemy.",
-        "Crear el modelo 'Evento' en 'models.py' con los campos especificados.",
-        "Implementar una migración inicial (usando Alembic o manual) para crear la tabla 'evento'.",
-        "Definir un Blueprint 'api_bp' en 'routes.py' que contenga los endpoints GET, POST, PUT y DELETE según el api_contract.",
-        "Agregar lógica de validación de entrada y manejo de errores HTTP 400/404.",
-        "Configurar serialización JSON para el modelo Evento.",
-        "Crear 'requirements.txt' listando Flask, Flask-SQLAlchemy, python-dotenv.",
-        "Crear 'pytest.ini' con configuración mínima.",
-        "Crear 'app.py' en raíz que importe 'create_app' y ejecute la aplicación.",
-        "Agregar pruebas unitarias en 'tests/test_events.py' utilizando el test client de Flask para cada endpoint."
+        "Crear el archivo `requirements.txt` con dependencias 'Flask', 'Flask-SQLAlchemy' y 'pytest'.",
+        "Crear el archivo `pytest.ini` en la raíz configurando '[pytest]\\npythonpath = .'",
+        "Crear la carpeta `backend/` con un archivo `__init__.py` que defina una factory `create_app`. ",
+        "Dentro de `backend/__init__.py`, inicializar Flask, configurar SQLAlchemy con SQLite 'calendario.db', y registrar el blueprint.",
+        "Crear en `backend/models.py` la clase `Evento` mapeada a la tabla 'eventos' con los campos especificados.",
+        "Crear en `backend/routes.py` un Blueprint 'api_bp' que implemente los cuatro endpoints descritos en el api_contract, usando serialización JSON y manejo de errores apropiado.",
+        "Crear el archivo `app.py` en la raíz que importe `create_app` desde `backend` y ejecute la aplicación con `if __name__ == '__main__': app.run(debug=True)`.",
+        "Añadir un script `migrate_db.py` para crear la base de datos SQLite si no existe.",
+        "Crear tests unitarios en `tests/test_backend.py` que verifiquen cada endpoint usando el cliente de prueba de Flask y pytest."
       ]
     },
     {
       "etapa": "frontend",
       "tareas": [
-        "Crear un archivo único 'index.html' con estructura básica (head, body).",
-        "Incluir la librería JavaScript de calendario (por ejemplo FullCalendar) mediante CDN.",
-        "Agregar un contenedor <div id='calendar'></div> para el calendario mensual.",
-        "Escribir script ES6 que inicialice el calendario y cargue eventos del mes actual llamando a '/api/events' con parámetros start/end.",
-        "Implementar función de clic en celda que abre un modal/formulario para crear evento, enviando POST a la API.",
-        "Mostrar los eventos dentro del calendario usando la propiedad 'eventRender' o equivalente.",
-        "Habilitar arrastrar y soltar (drag‑and‑drop) con el callback al mover evento, enviando PUT a la API con las nuevas fechas.",
-        "Agregar botón de eliminación en cada evento que invoque DELETE vía AJAX.",
-        "Incluir atributos 'data-testid' según contrato_qa_e2e para facilitar pruebas E2E."
+        "Crear el archivo `frontend/index.html` con la estructura básica, incluyendo un contenedor `<div id='calendar-container'>`.",
+        "Incluir en `index.html` los scripts necesarios de una librería de calendario JS (p.ej. FullCalendar) y su CSS.",
+        "Agregar en `index.html` un modal HTML con campos para título, descripción, fecha inicio, fecha fin y color.",
+        "Escribir JavaScript dentro de `<script>` que al cargar invoque GET `/api/events` con parámetros `start` y `end` del mes actual, parsee la respuesta y renderice los eventos en el calendario.",
+        "Implementar listeners para clics en días vacíos que abran el modal de creación de evento.",
+        "En el modal, capturar datos y enviar POST `/api/events`; al éxito, cerrar el modal y refrescar el calendario.",
+        "Para cada evento renderizado, agregar un listener que permita ver detalles y un botón de eliminación que invoque DELETE `/api/events/<id>`; después de eliminar, actualizar la vista.",
+        "Implementar drag-and-drop usando la API de FullCalendar: al soltar un evento en otro día, enviar PUT `/api/events/<id>` con nuevas fechas.",
+        "Añadir atributos `data-testid` según el contrato_qa_e2e para cada elemento crítico."
       ]
     },
     {
       "etapa": "e2e",
       "tareas": [
-        "Crear un archivo Cypress 'cypress/e2e/calendar.cy.js'.",
-        "Escribir prueba que navegue a la página, verifique que el calendario se renderiza.",
-        "Simular clic en una celda para crear un evento y validar que aparece en el calendario.",
-        "Arrastrar el evento a otra fecha y comprobar que la API PUT es llamada correctamente.",
-        "Eliminar el evento y asegurar que desaparece del calendario."
+        "Crear la carpeta `cypress/e2e/` y dentro un archivo `calendar.cy.js`.",
+        "En `calendar.cy.js`, escribir pruebas que:",
+        " 1. Visiten la página principal `/`.",
+        " 2. Verifiquen que el calendario se muestra y contiene eventos del mes actual.",
+        " 3. Simulen crear un nuevo evento haciendo clic en un día, llenando el modal y enviando los datos; luego verificar que aparece en el calendario.",
+        " 4. Simular la eliminación de un evento existente y confirmar su ausencia.",
+        " 5. Simular drag-and-drop de un evento a otro día y validar que la fecha del evento se actualiza correctamente mediante una solicitud PUT."
       ]
     }
   ]
