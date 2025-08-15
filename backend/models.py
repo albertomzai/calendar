@@ -1,19 +1,19 @@
-# backend/models.py
-
 from . import db
 
 class Evento(db.Model):
-    """SQLAlchemy model for calendar events."""
+    """Modelo de evento para la tabla 'eventos'."""
+
+    __tablename__ = 'eventos'
 
     id = db.Column(db.Integer, primary_key=True)
-    titulo = db.Column(db.String(200), nullable=False)
-    descripcion = db.Column(db.Text, nullable=True)
+    titulo = db.Column(db.String(255), nullable=False)
+    descripcion = db.Column(db.Text)
     fecha_inicio = db.Column(db.DateTime, nullable=False)
     fecha_fin = db.Column(db.DateTime, nullable=False)
-    color = db.Column(db.String(20), nullable=True)
+    color = db.Column(db.String(50))
 
     def to_dict(self):
-        """Return a serializable dictionary representation of the event."""
+        """Serializa el evento a un diccionario."""
         return {
             'id': self.id,
             'titulo': self.titulo,
