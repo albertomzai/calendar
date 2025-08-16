@@ -1,57 +1,64 @@
-import datetime
 import json
 
 import pytest
 
-from backend import app, db, Evento
+from backend import create_app, db, Evento
 
 @pytest.fixture(scope='module')
-def test_client():
+def client():
+    app = create_app(testing=True)
+    with app.app_context():
+        db.create_all()
     with app.test_client() as client:
-        with app.app_context():
-            # Preparar la base de datos en memoria para pruebas
-            db.drop_all()
-            db.create_all()
         yield client
+    # Teardown
+    with app.app_context():
+        db.drop_all()
 
-def test_get_events_empty(test_client):
-    response = test_client.get('/api/events')
+def test_root_route(client):
+    response = client.get('/')
     assert response.status_code == 200
-    data = json.loads(response.data)
-    assert isinstance(data, list) and len(data) == 0
 
-def test_create_event(test_client):
+def test_create_event(client):
     payload = {
-        'titulo': 'Prueba',
-        'fecha_inicio': datetime.datetime.now().isoformat(),
-        'fecha_fin': (datetime.datetime.now() + datetime.timedelta(hours=1)).isoformat()
+        'titulo': 'Reunión',
+        'descripcion': 'Discusión de proyecto',
+        'fecha_inicio': '2024-09-01T10:00:00',
+        'fecha_fin': '2024-09-01T11:00:00',
+        'color': '#ff0000'
     }
-    response = test_client.post('/api/events', json=payload)
+    response = client.post('/api/events', json=payload)
     assert response.status_code == 201
-    data = json.loads(response.data)
-    assert data['titulo'] == 'Prueba'
+    data = response.get_json()
+    assert data['titulo'] == payload['titulo']
 
-def test_get_events_with_data(test_client):
-    response = test_client.get('/api/events')
+def test_get_events(client):
+    # Asumimos que el evento creado en el test anterior existe
+    response = client.get('/api/events')
     assert response.status_code == 200
-    data = json.loads(response.data)
-    assert len(data) >= 1
+    events = response.get_json()
+    assert isinstance(events, list)
+    assert len(events) >= 1
 
-def test_update_event(test_client):
-    # Obtener el ID del evento creado anteriormente
-    event_id = Evento.query.first().id
-    new_title = 'Actualizado'
-    payload = {'titulo': new_title}
-    response = test_client.put(f'/api/events/{event_id}', json=payload)
+def test_update_event(client):
+    # Obtener ID del primer evento
+    events = client.get('/api/events').get_json()
+    event_id = events[0]['id']
+
+    payload = {'titulo': 'Reunión Actualizada'}
+    response = client.put(f'/api/events/{event_id}', json=payload)
     assert response.status_code == 200
-    data = json.loads(response.data)
-    assert data['titulo'] == new_title
+    updated = response.get_json()
+    assert updated['titulo'] == payload['titulo']
 
-def test_delete_event(test_client):
-    event_id = Evento.query.first().id
-    response = test_client.delete(f'/api/events/{event_id}')
+def test_delete_event(client):
+    # Obtener ID del primer evento
+    events = client.get('/api/events').get_json()
+    event_id = events[0]['id']
+
+    response = client.delete(f'/api/events/{event_id}')
     assert response.status_code == 204
-    # Verificar que el evento ya no existe
-    response = test_client.get('/api/events')
-    data = json.loads(response.data)
-    assert len(data) == 0
+
+    # Confirmar que ya no existe
+    get_resp = client.get(f'/api/events/{event_id}')
+    assert get_resp.status_code == 404

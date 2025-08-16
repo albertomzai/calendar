@@ -1,27 +1,57 @@
 import os
 
-from flask import Flask, Blueprint, send_from_directory
+from flask import Flask, abort, request, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 
-# Configuración de la base de datos SQLite
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, '..', 'calendario.db')
+# Global database instance
+db = SQLAlchemy()
 
-app = Flask(__name__, static_folder='../frontend', static_url_path='')
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+def create_app(testing: bool = False) -> Flask:
+    """Factory that creates and configures the Flask application.
 
-# Instancia de SQLAlchemy
-db = SQLAlchemy(app)
+    Parameters
+    ----------
+    testing : bool, optional
+        If True, the application is configured for unit tests using an in‑memory
+        SQLite database. Default is False.
 
-# Importar modelos para que se registren con SQLAlchemy
-from . import models  # noqa: E402,F401
+    Returns
+    -------
+    flask.Flask
+        The configured Flask application instance.
+    """
 
-# Registrar blueprint de la API
-from .routes import api_bp  # noqa: E402,F401
-app.register_blueprint(api_bp, url_prefix='/api')
+    app = Flask(__name__, static_folder='../frontend', static_url_path='')
 
-@app.route('/')
-def serve_index():
-    """Sirve el archivo index.html del frontend."""
-    return send_from_directory(app.static_folder, 'index.html')
+    # Configure the database URI
+    if testing:
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    else:
+        base_dir = os.path.abspath(os.path.dirname(__file__))
+        db_path = os.path.join(base_dir, '..', 'calendario.db')
+        app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Initialise extensions
+    db.init_app(app)
+
+# Register blueprints
+    from .routes import api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
+
+# Root route to serve the frontend index.html
+    @app.route('/')
+    def root():
+        return send_from_directory(app.static_folder, 'index.html')
+
+    # Error handlers for common HTTP errors
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({'error': 'Not found'}), 404
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({'error': error.description}), 400
+
+    return app

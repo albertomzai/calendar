@@ -1,19 +1,21 @@
+from datetime import datetime
+
 from . import db
 
 class Evento(db.Model):
-    """Modelo de evento para la tabla 'eventos'."""
+    """Modelo que representa un evento en la base de datos."""
 
     __tablename__ = 'eventos'
 
     id = db.Column(db.Integer, primary_key=True)
-    titulo = db.Column(db.String(255), nullable=False)
+    titulo = db.Column(db.String, nullable=False)
     descripcion = db.Column(db.Text)
     fecha_inicio = db.Column(db.DateTime, nullable=False)
     fecha_fin = db.Column(db.DateTime, nullable=False)
-    color = db.Column(db.String(50))
+    color = db.Column(db.String)
 
     def to_dict(self):
-        """Serializa el evento a un diccionario."""
+        """Serializa el objeto Evento a un diccionario JSON."""
         return {
             'id': self.id,
             'titulo': self.titulo,
