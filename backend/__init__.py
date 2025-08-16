@@ -1,57 +1,29 @@
-import os
-
-from flask import Flask, abort, request, jsonify, send_from_directory
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
-# Global database instance
+# Inicializar la extensión de base de datos
 db = SQLAlchemy()
 
-def create_app(testing: bool = False) -> Flask:
-    """Factory that creates and configures the Flask application.
+# Importar el blueprint de la API
+from .routes import api_bp
 
-    Parameters
-    ----------
-    testing : bool, optional
-        If True, the application is configured for unit tests using an in‑memory
-        SQLite database. Default is False.
-
-    Returns
-    -------
-    flask.Flask
-        The configured Flask application instance.
-    """
-
+def create_app():
+    """Factory que crea y configura la aplicación Flask."""
     app = Flask(__name__, static_folder='../frontend', static_url_path='')
 
-    # Configure the database URI
-    if testing:
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-    else:
-        base_dir = os.path.abspath(os.path.dirname(__file__))
-        db_path = os.path.join(base_dir, '..', 'calendario.db')
-        app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-
+    # Configuración de la base de datos SQLite
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///calendario.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialise extensions
+    # Inicializar extensiones
     db.init_app(app)
 
-# Register blueprints
-    from .routes import api_bp
+    # Registrar el blueprint de la API
     app.register_blueprint(api_bp, url_prefix='/api')
 
-# Root route to serve the frontend index.html
-    @app.route('/')
-    def root():
-        return send_from_directory(app.static_folder, 'index.html')
-
-    # Error handlers for common HTTP errors
-    @app.errorhandler(404)
-    def not_found(error):
-        return jsonify({'error': 'Not found'}), 404
-
-    @app.errorhandler(400)
-    def bad_request(error):
-        return jsonify({'error': error.description}), 400
-
     return app
+
+# Importar el modelo Evento después de la configuración para evitar ciclos de importación
+from .models import Evento
+
+__all__ = ['create_app', 'db', 'Evento']

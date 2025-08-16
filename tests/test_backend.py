@@ -1,64 +1,69 @@
-import json
-
 import pytest
+from datetime import datetime, timedelta
 
 from backend import create_app, db, Evento
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def client():
-    app = create_app(testing=True)
+    app = create_app()
+    app.config['TESTING'] = True
+    # Usar una BD en memoria para los tests
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+
     with app.app_context():
         db.create_all()
+
     with app.test_client() as client:
         yield client
-    # Teardown
-    with app.app_context():
-        db.drop_all()
 
-def test_root_route(client):
-    response = client.get('/')
-    assert response.status_code == 200
+@pytest.fixture(autouse=True)
+def clean_db():
+    # Garantiza que cada test empieza con DB vacía
+    yield
+    with db.session.no_autoflush:
+        db.session.query(Evento).delete()
+        db.session.commit()
 
 def test_create_event(client):
     payload = {
-        'titulo': 'Reunión',
-        'descripcion': 'Discusión de proyecto',
-        'fecha_inicio': '2024-09-01T10:00:00',
-        'fecha_fin': '2024-09-01T11:00:00',
-        'color': '#ff0000'
+        'titulo': 'Prueba',
+        'fecha_inicio': datetime.utcnow().isoformat(),
+        'fecha_fin': (datetime.utcnow() + timedelta(hours=1)).isoformat()
     }
-    response = client.post('/api/events', json=payload)
-    assert response.status_code == 201
-    data = response.get_json()
-    assert data['titulo'] == payload['titulo']
+    resp = client.post('/api/events', json=payload)
+    assert resp.status_code == 201
+    data = resp.get_json()
+    assert data['titulo'] == 'Prueba'
 
 def test_get_events(client):
-    # Asumimos que el evento creado en el test anterior existe
-    response = client.get('/api/events')
-    assert response.status_code == 200
-    events = response.get_json()
-    assert isinstance(events, list)
-    assert len(events) >= 1
+    # Crear dos eventos
+    e1 = Evento(titulo='A', fecha_inicio=datetime.utcnow(), fecha_fin=datetime.utcnow()+timedelta(hours=2))
+    e2 = Evento(titulo='B', fecha_inicio=datetime.utcnow()+timedelta(days=1), fecha_fin=datetime.utcnow()+timedelta(days=1, hours=2))
+    db.session.add_all([e1, e2])
+    db.session.commit()
+
+    resp = client.get('/api/events')
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert len(data) == 2
 
 def test_update_event(client):
-    # Obtener ID del primer evento
-    events = client.get('/api/events').get_json()
-    event_id = events[0]['id']
+    evento = Evento(titulo='Old', fecha_inicio=datetime.utcnow(), fecha_fin=datetime.utcnow()+timedelta(hours=1))
+    db.session.add(evento)
+    db.session.commit()
 
-    payload = {'titulo': 'Reunión Actualizada'}
-    response = client.put(f'/api/events/{event_id}', json=payload)
-    assert response.status_code == 200
-    updated = response.get_json()
-    assert updated['titulo'] == payload['titulo']
+    new_title = 'Updated'
+    resp = client.put(f'/api/events/{evento.id}', json={'titulo': new_title})
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert data['titulo'] == new_title
 
 def test_delete_event(client):
-    # Obtener ID del primer evento
-    events = client.get('/api/events').get_json()
-    event_id = events[0]['id']
+    evento = Evento(titulo='ToDelete', fecha_inicio=datetime.utcnow(), fecha_fin=datetime.utcnow()+timedelta(hours=1))
+    db.session.add(evento)
+    db.session.commit()
 
-    response = client.delete(f'/api/events/{event_id}')
-    assert response.status_code == 204
-
-    # Confirmar que ya no existe
-    get_resp = client.get(f'/api/events/{event_id}')
-    assert get_resp.status_code == 404
+    resp = client.delete(f'/api/events/{evento.id}')
+    assert resp.status_code == 204
+    # Verificar que ya no existe
+    assert Evento.query.get(evento.id) is None
